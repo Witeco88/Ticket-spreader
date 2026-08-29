@@ -1,7 +1,7 @@
 {
-  "name": "Repartidor",
+  "name": "Repartidor · Ticket Scanner",
   "short_name": "Repartidor",
-  "description": "Calculadora per repartir imports entre persones.",
+  "description": "Repartiment amb Ticket Scanner 5.7 integrat.",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#0f172a",
