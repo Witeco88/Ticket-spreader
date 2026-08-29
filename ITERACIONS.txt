@@ -1,0 +1,4 @@
+
+V35 — OCR/parsing de tiquets millorat: formats monetaris europeus, separació de productes i totals, exclusió de línies administratives i eliminació de duplicats. Preparació de l'assignació del tiquet amb els noms reals de les persones i selectors visuals per noms.
+
+V36 — Reconstruïda a partir de la v35 funcional per preservar la usabilitat. Corregit el parser: el primer TOTAL detectat és terminal i cap concepte posterior entra al repartiment. Els selectors de l'escàner mostren els noms de les persones. Recuperats manifest.json, sw.js i les icones oficials adjuntes icon-180.png i icon-512.png.

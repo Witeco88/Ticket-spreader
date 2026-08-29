@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Repartidor">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Repartidor v36</title>
+<style>
+:root{
+ --bg:#f5f7fa;--card:#fff;--text:#17202a;--muted:#667085;--line:#e5e7eb;--soft:#f0f3f6;
+ --accent:#0aa77b;--accent-soft:#e5f8f1;--purple:#7252df;--purple-soft:#eee9ff;
+ --blue:#2869d7;--danger:#d64555;--ok:#087f61;
+ --shadow:0 4px 18px rgba(16,24,40,.06)
+}
+@media(prefers-color-scheme:dark){
+ :root{--bg:#0b1117;--card:#151c23;--text:#f5f7fa;--muted:#9aa5b1;--line:#2a333d;--soft:#1e2730;
+ --accent:#27d4a4;--accent-soft:#10382e;--purple:#a48bff;--purple-soft:#2a2347;
+ --blue:#5d91ed;--danger:#ff7886;--ok:#31d9ad;--shadow:0 5px 20px rgba(0,0,0,.22)}
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Segoe UI",sans-serif}
+body{min-height:100vh}
+button,input,select{font:inherit}button{-webkit-tap-highlight-color:transparent;cursor:pointer}
+main{width:min(600px,100%);margin:auto;padding:max(18px,env(safe-area-inset-top)) 15px calc(78px + env(safe-area-inset-bottom))}
+header{display:flex;align-items:center;justify-content:space-between;margin:0 2px 17px}
+.brand{display:flex;align-items:center;gap:10px}.logo{width:40px;height:40px;border-radius:50%;position:relative;display:grid;place-items:center;background:linear-gradient(135deg,var(--teal,#19c99b),var(--purple));box-shadow:0 3px 10px rgba(0,0,0,.08)}
+.logo:before{content:"";position:absolute;inset:4px;border-radius:50%;background:var(--card)}
+.logo:after{content:"%";position:relative;z-index:1;color:var(--text);font-size:21px;font-weight:850;line-height:1;transform:translateY(-.5px)}
+h1{font-size:18px;line-height:1;margin:0;font-weight:800;letter-spacing:-.2px}.sub{margin:4px 0 0;color:var(--muted);font-size:11px}
+.topbtn{width:38px;height:38px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--text);display:grid;place-items:center}.topbtn .icon{width:20px;height:20px}
+.page{display:none}.page.active{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:11px;box-shadow:var(--shadow)}
+/* Calculator */
+.amountCard{padding:17px 16px 14px}.label{font-size:13px;font-weight:700;color:var(--muted);margin-bottom:7px;text-align:left}
+.inputwrap{display:flex;align-items:center;border:1.5px solid var(--line);border-radius:14px;background:var(--soft);padding:0 14px;transition:.15s}
+.inputwrap:focus-within{border-color:var(--accent);background:var(--card);box-shadow:0 0 0 3px var(--accent-soft)}
+.inputwrap input{width:100%;min-width:0;border:0;outline:0;background:transparent;color:var(--text);font-size:32px;font-weight:800;letter-spacing:-1px;padding:11px 0}.euro{font-size:18px;font-weight:750}
+.quick{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:8px}.quick button{border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--accent);font-size:12px;font-weight:750;padding:8px}.quick button:active{transform:scale(.98)}
+.sectionTitle{font-size:14px;font-weight:800;margin:0 0 9px}
+.method{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;background:var(--soft);border-radius:12px;padding:4px;margin-bottom:10px}
+.method button{border:0;background:transparent;color:var(--muted);border-radius:9px;padding:9px 4px;font-size:11px;font-weight:750}.method button.active{background:var(--card);color:var(--text);box-shadow:0 1px 4px rgba(16,24,40,.08)}
+.method .salary.active{color:var(--accent)}.method .percent.active{color:var(--purple)}
+.equalMini{display:flex;align-items:center;justify-content:space-between;padding:9px 10px;border:1px solid var(--line);border-radius:12px;margin-bottom:11px}
+.equalMiniCopy{display:flex;align-items:center;gap:9px}.equalMiniIcon{width:29px;height:29px;border-radius:9px;background:var(--purple-soft);color:var(--purple);display:grid;place-items:center;font-weight:800}.equalMini b{display:block;font-size:12px}.equalMini small{display:block;color:var(--muted);font-size:10px;margin-top:2px}
+.equalSwitch{position:relative;width:42px;height:25px;flex:none}.equalSwitch input{position:absolute;opacity:0;width:0;height:0}.equalSlider{position:absolute;inset:0;border-radius:999px;background:var(--line);transition:.18s}.equalSlider:before{content:"";position:absolute;width:19px;height:19px;left:3px;top:3px;border-radius:50%;background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,.18);transition:.18s}.equalSwitch input:checked+.equalSlider{background:var(--accent)}.equalSwitch input:checked+.equalSlider:before{transform:translateX(17px)}
+.groupHead{display:flex;align-items:center;gap:7px;margin:1px 1px 8px}.groupHead b{font-size:14px}.groupHead span{font-size:11px;color:var(--muted)}.groupHead button{margin-left:auto;border:0;background:var(--accent-soft);color:var(--accent);border-radius:9px;padding:7px 10px;font-size:11px;font-weight:800}
+.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.shareCard{border:1px solid var(--line);border-radius:14px;background:var(--card);padding:12px 11px;min-width:0;display:grid;grid-template-columns:38px minmax(0,1fr);grid-template-rows:auto auto auto;column-gap:8px;align-items:center}
+.personIcon{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;grid-row:1 / span 3;background:var(--accent-soft);color:var(--accent)}.personIcon.purple{background:var(--purple-soft);color:var(--purple)}.personIcon svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.shareTop{display:flex;justify-content:space-between;align-items:center;gap:4px;min-width:0}.sharePct{font-size:19px;font-weight:850;letter-spacing:-.4px}.sharePct.teal{color:var(--accent)}.sharePct.purple{color:var(--purple)}.shareName{text-align:left;font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.editName{border:0;background:transparent;color:inherit;padding:0;text-align:left;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px;font-weight:700}.editName span{color:var(--muted);font-size:9px}.shareValue{text-align:left;font-size:17px;font-weight:850;margin-top:1px}.personMenu{display:none}
+.total{border:1px solid var(--line);border-radius:13px;margin-top:9px;padding:11px 12px;display:flex;justify-content:space-between;align-items:center}.totalLeft{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700}.totalIcon{color:var(--accent);font-size:18px}.total b{font-size:15px}.check{font-size:10px;color:var(--ok);font-weight:750;margin-top:2px;text-align:right}
+.actions{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:9px}.actions button{border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:11px;padding:9px 5px;font-size:11px;font-weight:750}.actions .primary{color:var(--accent);background:var(--accent-soft);border-color:transparent}
+/* Secondary pages */
+.sectionhead{display:flex;align-items:center;justify-content:space-between;gap:8px}.sectionhead h2{font-size:17px;margin:0}.linkbtn{border:0;background:transparent;color:var(--accent);padding:5px;font-size:12px;font-weight:800}
+.search{width:100%;border:1px solid var(--line);outline:0;background:var(--soft);color:var(--text);border-radius:11px;padding:10px 11px;margin:10px 0 2px}.filterbar{display:flex;gap:6px;padding:7px 0;overflow:auto}.chip{border:0;background:var(--soft);color:var(--muted);border-radius:9px;padding:7px 10px;font-size:11px;font-weight:750;white-space:nowrap}.chip.active{background:var(--text);color:var(--bg)}
+.item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 1px;border-bottom:1px solid var(--line)}.item:last-child{border:0}.item b{display:block;font-size:14px}.item small{display:block;color:var(--muted);font-size:10px;margin-top:2px}.right{text-align:right}.tag{display:inline-block;font-size:10px;background:var(--soft);padding:3px 6px;border-radius:6px;color:var(--muted);margin-top:4px}.empty{text-align:center;color:var(--muted);padding:18px 0;font-size:12px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}.stat{background:var(--soft);border-radius:13px;padding:12px}.stat small{display:block;color:var(--muted);font-size:10px}.stat b{display:block;font-size:17px;margin-top:4px}
+.setting{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}.setting:last-child{border:0}.setting span{font-size:13px;font-weight:700}.setting small{display:block;color:var(--muted);font-size:10px;font-weight:400;margin-top:3px}.setting input{width:86px;padding:8px;border:0;background:var(--soft);color:var(--text);border-radius:9px;text-align:right;font-weight:700}.setting select{max-width:145px;border:0;background:var(--soft);color:var(--text);padding:8px;border-radius:9px;font-size:12px}
+.peopleRow{display:grid;grid-template-columns:minmax(0,1fr) 105px 31px;gap:6px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}.peopleRow input,.percentRow input{width:100%;padding:9px;border:1px solid transparent;background:var(--soft);color:var(--text);border-radius:9px;font-size:12px}.peopleRow input:focus,.percentRow input:focus{outline:2px solid var(--accent);background:var(--card)}.peopleRow .salaryInput{text-align:right}.removePerson{width:31px;height:31px;padding:0;border:0;border-radius:9px;background:var(--soft);color:var(--danger);font-size:16px}.personPct{display:block;color:var(--muted);font-size:9px;margin-top:2px}.percentRow{display:grid;grid-template-columns:minmax(0,1fr) 90px;gap:7px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}.percentRow input{text-align:right;font-weight:750}.modeHidden{display:none!important}
+.nameModal .sheet input{font-size:16px}.modal{position:fixed;inset:0;background:rgba(0,0,0,.42);display:none;align-items:flex-end;justify-content:center;z-index:7}.modal.show{display:flex}.sheet{width:min(600px,100%);background:var(--card);border-radius:20px 20px 0 0;padding:20px 16px calc(18px + env(safe-area-inset-bottom))}.sheet h2{margin:0 0 12px;font-size:19px}.sheetgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.sheet input{width:100%;padding:12px;border:0;background:var(--soft);color:var(--text);border-radius:10px}.sheet button{width:100%;border:0;border-radius:11px;padding:11px;background:var(--soft);color:var(--text);font-weight:750}.sheet .primary{background:var(--text);color:var(--bg)}
+nav{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(600px,100%);padding:3px 9px calc(3px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--card) 94%,transparent);backdrop-filter:blur(18px);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);z-index:3}
+nav button{border:0;background:transparent;color:var(--muted);padding:4px 2px 3px;font-size:15px;line-height:1}.navicon{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}nav button.active{color:var(--accent)}.navlabel{display:block;font-size:9px;margin-top:2px;font-weight:650}
+.toast{position:fixed;left:50%;bottom:66px;transform:translate(-50%,12px);background:#17202a;color:#fff;padding:9px 13px;border-radius:10px;font-size:11px;opacity:0;pointer-events:none;transition:.2s;z-index:8}.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:390px){main{padding-left:12px;padding-right:12px}.result-grid{gap:6px}.shareCard{padding:10px 9px}.sharePct{font-size:18px}.shareValue{font-size:16px}.inputwrap input{font-size:29px}}
+@media(min-width:700px){main{padding-top:30px}}
+
+/* Ticket scanner v33 */
+.scanEntry{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:10px;padding:10px 11px;border:1px solid var(--line);border-radius:13px;background:var(--soft)}
+.scanEntryCopy{display:flex;align-items:center;gap:9px;min-width:0}.scanEntryIcon{width:32px;height:32px;border-radius:10px;background:var(--blue);color:#fff;display:grid;place-items:center;flex:none}.scanEntryIcon svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}.scanEntry b{display:block;font-size:12px}.scanEntry small{display:block;color:var(--muted);font-size:10px;margin-top:2px}.scanBtn{border:0;background:var(--card);color:var(--blue);border-radius:10px;padding:8px 10px;font-size:11px;font-weight:800;white-space:nowrap}
+.ticketHero{overflow:hidden}.ticketPreview{display:none;width:100%;max-height:260px;object-fit:contain;border-radius:13px;background:var(--soft);margin-top:10px}.ticketPreview.show{display:block}.scanStatus{font-size:11px;color:var(--muted);padding:9px 0 2px}.scanStatus.ok{color:var(--ok)}.scanStatus.error{color:var(--danger)}
+.ticketRows{margin-top:10px}.ticketRow{border:1px solid var(--line);border-radius:13px;padding:10px;margin-bottom:7px;background:var(--card)}.ticketMain{display:grid;grid-template-columns:minmax(0,1fr) 88px;gap:7px;align-items:center}.ticketMain input{width:100%;border:0;background:var(--soft);color:var(--text);border-radius:9px;padding:9px;font-size:12px}.ticketMain input:focus{outline:2px solid var(--accent);background:var(--card)}.ticketAmount{text-align:right;font-weight:800}.assignLabel{font-size:9px;color:var(--muted);margin:7px 0 5px}.assignChips{display:flex;gap:5px;flex-wrap:wrap}.assignChip{border:1px solid var(--line);background:var(--soft);color:var(--muted);border-radius:8px;min-width:29px;padding:6px 7px;font-size:10px;font-weight:800}.assignChip.active{background:var(--accent-soft);border-color:transparent;color:var(--accent)}.ticketMeta{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}.ticketStat{background:var(--soft);border-radius:11px;padding:10px}.ticketStat small{display:block;color:var(--muted);font-size:9px}.ticketStat b{display:block;font-size:14px;margin-top:3px}.ticketDiff{font-size:10px;margin-top:7px;text-align:right;color:var(--muted)}.ticketDiff.warn{color:var(--danger)}.ticketActions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}.ticketActions button{border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:11px;padding:10px;font-size:11px;font-weight:800}.ticketActions .primary{background:var(--accent);border-color:transparent;color:#fff}.ticketEmpty{padding:22px 8px;text-align:center;color:var(--muted);font-size:11px}.ticketHint{font-size:10px;color:var(--muted);line-height:1.45;margin-top:8px}.ticketCamera{width:100%;padding:13px;border:1px dashed var(--line);border-radius:13px;background:var(--soft);color:var(--text);font-weight:800;font-size:12px}
+@media(max-width:390px){.ticketMain{grid-template-columns:minmax(0,1fr) 82px}}
+
+/* v35: receipt review / names */
+.receiptItem{position:relative}
+.receiptPeople{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.receiptPersonBtn{border:1px solid var(--line);background:var(--card);color:var(--muted);border-radius:999px;padding:6px 9px;font-size:12px;font-weight:650}
+.receiptPersonBtn.selected{background:color-mix(in srgb,var(--accent) 12%,transparent);border-color:color-mix(in srgb,var(--accent) 50%,var(--line));color:var(--accent)}
+.receiptAmount{font-variant-numeric:tabular-nums}
+.receiptWarning{padding:11px 12px;border-radius:12px;background:color-mix(in srgb,#f59e0b 10%,transparent);border:1px solid color-mix(in srgb,#f59e0b 25%,var(--line));font-size:12px;line-height:1.4}
+.receiptConfidence{font-size:11px;color:var(--muted)}
+</style></head>
+<body><main>
+<header><div class="brand"><div class="logo" aria-label="Repartidor"></div><div><h1>Repartidor</h1><p class="sub" id="subtitle">63,4% · 36,6%</p></div></div></header>
+
+<section id="calcPage" class="page active">
+<div class="card amountCard">
+  <div class="label">Import rebut</div>
+  <div class="inputwrap"><input id="amount" inputmode="decimal" type="text" placeholder="0,00" autocomplete="off"><span class="euro">€</span></div>
+  <div class="quick"><button data-add="10">+10 €</button><button data-add="50">+50 €</button><button data-add="100">+100 €</button><button id="clearInput" style="display:none">⌫</button></div>
+  <div class="scanEntry"><div class="scanEntryCopy"><div class="scanEntryIcon"><svg viewBox="0 0 24 24"><path d="M4 9V5a1 1 0 0 1 1-1h4M15 4h4a1 1 0 0 1 1 1v4M20 15v4a1 1 0 0 1-1 1h-4M9 20H5a1 1 0 0 1-1-1v-4"/><path d="M7 12h10M12 7v10"/></svg></div><div><b>Escanejar tiquet</b><small>Foto → conceptes → repartiment</small></div></div><button class="scanBtn" id="scanTicket">Obrir</button></div>
+</div>
+
+<div class="card">
+  <div class="sectionTitle">Com repartim?</div>
+  <div class="method" role="group" aria-label="Mètode de repartiment">
+    <button class="salary" id="methodSalary">Salaris</button>
+    <button class="percent" id="methodPercent">Percentatges</button>
+    <button class="equal" id="methodEqual">Parts iguals</button>
+  </div>
+  <div class="equalMini">
+    <div class="equalMiniCopy"><div class="equalMiniIcon">=</div><div><b>Parts iguals</b><small>Mateixa part per a tothom</small></div></div>
+    <label class="equalSwitch" aria-label="Activar parts iguals"><input id="equalShares" type="checkbox"><span class="equalSlider"></span></label>
+  </div>
+
+  <div class="groupHead"><b>Persones</b><span id="groupCount"></span><button id="addPersonMain">＋ Afegir</button></div>
+  <div id="resultRows"></div>
+  <div class="total"><div class="totalLeft"><span class="totalIcon">⚖</span><span>Total</span></div><div><b id="total">0,00 €</b><div class="check" id="check">Quadrat ✓</div></div></div>
+  <div class="actions">
+    <button class="primary" id="copy">▣ &nbsp;Copiar</button><button id="share">⇧ &nbsp;Compartir</button><button id="save">▱ &nbsp;Guardar</button><button id="reset">↺ &nbsp;Reiniciar</button>
+  </div>
+</div>
+</section>
+
+<section id="ticketPage" class="page">
+<div class="card ticketHero">
+  <div class="sectionhead"><h2>Escanejar tiquet</h2><button class="linkbtn" id="ticketBack">Tornar</button></div>
+  <div class="ticketHint">Fes una foto clara i frontal. La v33 llegeix les línies amb imports i després et deixa assignar cada concepte a una o més persones.</div>
+  <input id="ticketFile" type="file" accept="image/*" capture="environment" hidden>
+  <button class="ticketCamera" id="ticketChoose">📷 Fer foto o triar imatge</button>
+  <img id="ticketPreview" class="ticketPreview" alt="Previsualització del tiquet">
+  <div id="scanStatus" class="scanStatus">Encara no has seleccionat cap tiquet.</div>
+</div>
+<div class="card" id="ticketEditorCard" style="display:none">
+  <div class="sectionhead"><h2>Revisa i assigna</h2><button class="linkbtn" id="ticketAddRow">＋ Línia</button></div>
+  <div class="ticketHint">Selecciona els noms de les persones que paguen cada línia. Pots seleccionar més d'una persona per dividir un producte a parts iguals.</div>
+  <div id="ticketRows" class="ticketRows"></div>
+  <div class="ticketMeta"><div class="ticketStat"><small>Conceptes</small><b id="ticketItemsTotal">0,00 €</b></div><div class="ticketStat"><small>Total detectat</small><b id="ticketDetectedTotal">—</b></div></div>
+  <div id="ticketDiff" class="ticketDiff"></div>
+  <div class="ticketActions"><button id="ticketReset">Netejar</button><button class="primary" id="ticketApply">Aplicar al repartiment</button></div>
+</div>
+<div class="card" id="ticketEmptyCard"><div class="ticketEmpty">Quan carreguis una foto, aquí apareixeran les línies detectades.</div></div>
+</section>
+<section id="historyPage" class="page"><div class="card"><div class="sectionhead"><h2>Historial</h2><button class="linkbtn" id="clearHistory">Esborrar tot</button></div>
+<input class="search" id="search" placeholder="Cerca import o etiqueta…"><div class="filterbar"><button class="chip active" data-filter="all">Tots</button><button class="chip" data-filter="today">Avui</button><button class="chip" data-filter="week">7 dies</button></div>
+<div id="history"></div></div></section>
+
+<section id="statsPage" class="page"><div class="card"><div class="sectionhead"><h2>Resum</h2></div><div class="stats">
+<div class="stat"><small>Imports guardats</small><b id="sCount">0</b></div><div class="stat"><small>Total rebut</small><b id="sTotal">0,00 €</b></div>
+<div class="stat"><small>Part principal</small><b id="sA">0,00 €</b></div><div class="stat"><small>Altres parts</small><b id="sB">0,00 €</b></div>
+</div><div class="actions"><button id="export">⇩ &nbsp;Exportar CSV</button><button id="shareStats">⇧ &nbsp;Compartir resum</button></div></div></section>
+
+<section id="settingsPage" class="page">
+<div class="card"><div class="sectionhead"><h2>Configuració</h2></div>
+<div class="setting"><span>Mode de repartiment<small>Percentatges directes o segons salaris nets</small></span><select id="mode"><option value="salary">Segons salaris</option><option value="percent">Percentatges</option></select></div></div>
+<div class="card" id="salaryCard"><div class="sectionhead"><h2>Grup</h2><button class="linkbtn" id="addPerson">＋ Afegir</button></div>
+<div class="setting"><span>Persones<small>Entre 2 i 10 persones · pots eliminar-ne qualsevol després d’afegir-la</small></span><b id="peopleCount">2</b></div>
+<div id="peopleList"></div>
+<div class="equalShare">
+  <div class="equalCopy"><div class="equalIcon">≡</div><div class="equalText"><b>Parts iguals</b><small>Reparteix l’import a parts iguals entre tots</small></div></div>
+  <label class="equalSwitch" aria-label="Activar parts iguals"><input id="equalShares" type="checkbox"><span class="equalSlider"></span></label>
+</div>
+<div class="total"><span>Total salaris nets</span><b id="salaryTotal">0,00 €</b></div>
+<div class="check" id="salaryCheck">○ Introdueix els salaris per calcular els percentatges</div></div>
+<div class="card" id="percentCard"><div class="sectionhead"><h2>Percentatges</h2></div><div id="percentList"></div><div class="check">✓ Pots introduir els percentatges directament</div></div>
+<div class="card"><div class="sectionhead"><h2>Dades</h2></div><div class="actions"><button id="backup">⇧ &nbsp;Exportar dades</button><button id="restoreBtn">⇩ &nbsp;Importar dades</button></div><input id="restoreFile" type="file" accept=".json" hidden></div>
+</section>
+</main>
+
+<nav>
+<button class="active" data-page="calcPage" aria-label="Calculadora"><svg class="navicon" viewBox="0 0 24 24"><path d="M4 10.5 12 4l8 6.5"/><path d="M6 10v10h12V10"/><path d="M9 20v-6h6v6"/></svg><span class="navlabel">Inici</span></button>
+<button data-page="historyPage" aria-label="Historial"><svg class="navicon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/></svg><span class="navlabel">Historial</span></button>
+<button data-page="statsPage" aria-label="Resum"><svg class="navicon" viewBox="0 0 24 24"><path d="M5 19V11M12 19V6M19 19v-8"/><path d="M4 19h17"/></svg><span class="navlabel">Resum</span></button>
+<button data-page="settingsPage" aria-label="Ajustos"><svg class="navicon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="m19 12 2-1.2-2-3.4-2.2.8a7.7 7.7 0 0 0-1.7-1L15 5h-4l-.2 2.2a7.7 7.7 0 0 0-1.7 1l-2.2-.8-2 3.4 2 1.2a7 7 0 0 0 0 2l-2 1.2 2 3.4 2.2-.8a7.7 7.7 0 0 0 1.7 1L11 19h4l.2-2.2a7.7 7.7 0 0 0 1.7-1l2.2.8 2-3.4-2-1.2a7 7 0 0 0 0-2Z"/></svg><span class="navlabel">Ajustos</span></button>
+</nav>
+<div class="toast" id="toast"></div>
+<div class="modal nameModal" id="nameModal"><div class="sheet"><h2>Canviar nom</h2><input id="nameInput" type="text" maxlength="30" placeholder="Nom de la persona"><div class="sheetgrid"><button id="closeName">Cancel·lar</button><button class="primary" id="saveName">Desar</button></div></div></div>
+<div class="modal" id="labelModal"><div class="sheet"><h2>Guardar import</h2><div class="sheetgrid"><input id="labelInput" placeholder="Etiqueta opcional"><button class="primary" id="saveLabeled">Guardar</button></div><button id="closeModal">Cancel·lar</button></div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const defaults={mode:'salary',equalShares:false,people:[{name:'Persona 1',salary:0},{name:'Persona 2',salary:0}],percentages:[50,50],decimals:2,confirmDelete:true};
+let cfg={...defaults,...(JSON.parse(localStorage.getItem('cfg')||'{}'))};
+cfg.equalShares=!!cfg.equalShares;
+cfg.people=Array.isArray(cfg.people)&&cfg.people.length>=2?cfg.people.slice(0,10):defaults.people;
+cfg.percentages=Array.isArray(cfg.percentages)&&cfg.percentages.length===cfg.people.length?cfg.percentages:cfg.people.map(()=>100/cfg.people.length);
+let activeFilter='all',pending=null;
+let ticketRows=[],ticketDetectedTotal=null,ticketObjectUrl=null;
+function parse(v){v=String(v??'').trim().replace(/\s/g,'');if(!v)return 0;if(v.includes(',')&&v.includes('.'))v=v.lastIndexOf(',')>v.lastIndexOf('.')?v.replace(/\./g,'').replace(',','.'):v.replace(/,/g,'');else if(v.includes(','))v=v.replace(',','.');return Number(v)||0}
+function pct(n){return n.toLocaleString('ca-ES',{minimumFractionDigits:1,maximumFractionDigits:1})+'%'}
+function fmt(n){return n.toLocaleString('ca-ES',{minimumFractionDigits:Number(cfg.decimals),maximumFractionDigits:Number(cfg.decimals)})+' €'}
+function esc(x){return String(x).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function saveCfg(){localStorage.setItem('cfg',JSON.stringify(cfg))}
+function getH(){try{return JSON.parse(localStorage.getItem('history')||'[]')}catch{return[]}}
+function setH(h){localStorage.setItem('history',JSON.stringify(h.slice(0,200)))}
+function getPercentages(){if(cfg.equalShares)return cfg.people.map(()=>100/cfg.people.length);if(cfg.mode==='salary'){let t=cfg.people.reduce((s,p)=>s+Math.max(0,Number(p.salary)||0),0);return t?cfg.people.map(p=>Math.max(0,Number(p.salary)||0)/t*100):cfg.people.map(()=>100/cfg.people.length)}let v=cfg.percentages.map(x=>Math.max(0,Number(x)||0)),t=v.reduce((a,b)=>a+b,0);return t?v.map(x=>x/t*100):v.map(()=>100/v.length)}
+function calc(){let n=parse($('amount').value),ps=getPercentages();updateMethodUI();$('resultRows').innerHTML='<div class="result-grid">'+cfg.people.map((p,i)=>{let tone=i%2?'purple':'teal';return `<div class="shareCard"><div class="shareTop"><span class="sharePct ${tone}">${pct(ps[i])}</span></div><div class="personIcon ${tone==='purple'?'purple':''}"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5.5 20c.7-4 2.9-6 6.5-6s5.8 2 6.5 6"/></svg></div><div class="shareName"><button class="editName" data-edit-name="${i}" aria-label="Canviar nom">${esc(p.name||'Persona '+(i+1))} <span>✎</span></button></div><div class="shareValue">${fmt(n*ps[i]/100)}</div><button class="removeCardPerson" data-remove-card="${i}" aria-label="Eliminar persona" title="Eliminar persona">
+<svg viewBox="0 0 24 24" aria-hidden="true">
+<path d="M5.5 7.5h13M9.2 7.5V5.2c0-.7.5-1.2 1.2-1.2h3.2c.7 0 1.2.5 1.2 1.2v2.3M7.4 7.5l.8 12.1c.1.8.7 1.4 1.5 1.4h4.6c.8 0 1.4-.6 1.5-1.4l.8-12.1M10.2 10.8v6.2M13.8 10.8v6.2"/>
+</svg></button></div>`}).join('')+'</div>';$('total').textContent=fmt(n);$('groupCount').textContent=cfg.people.length+' de 10 persones';$('addPersonMain').disabled=cfg.people.length>=10;$addPersonMainStyle();$('subtitle').textContent=cfg.mode==='salary'?'Segons salaris · '+cfg.people.length+' persones':ps.map(pct).join(' · ');$('check').textContent=Math.abs(ps.reduce((a,b)=>a+b,0)-100)<.001?'Quadrat ✓':'Revisa el repartiment';renderSettings()}
+function toast(t){let x=$('toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),1600)}
+function resultText(n){let ps=getPercentages();return `Import rebut: ${fmt(n)}\n`+cfg.people.map((p,i)=>`${p.name||'Persona '+(i+1)} (${pct(ps[i])}): ${fmt(n*ps[i]/100)}`).join('\n')}
+function renderSettings(){let ps=getPercentages();$('mode').value=cfg.mode;$('equalShares').checked=!!cfg.equalShares;$('salaryCard').classList.toggle('modeHidden',cfg.mode!=='salary');$('percentCard').classList.toggle('modeHidden',cfg.mode!=='percent');$('peopleCount').textContent=cfg.people.length;let total=cfg.people.reduce((s,p)=>s+(Number(p.salary)||0),0);$('salaryTotal').textContent=fmt(total);$('salaryCheck').textContent=cfg.equalShares?'✓ L’import es repartirà a parts iguals':(total>0?'✓ Percentatges calculats a partir dels salaris':'○ Introdueix els salaris per calcular els percentatges');
+$('peopleList').innerHTML=cfg.people.map((p,i)=>`<div class="peopleRow"><div><input data-name="${i}" value="${esc(p.name||'Persona '+(i+1))}"><span class="personPct">${pct(ps[i])}</span></div><input class="salaryInput" data-salary="${i}" inputmode="decimal" value="${p.salary?String(p.salary).replace('.',','):''}" placeholder="0,00 €"><button class="removePerson" data-remove="${i}">×</button></div>`).join('');
+$('percentList').innerHTML=cfg.people.map((p,i)=>`<div class="percentRow"><div>${esc(p.name||'Persona '+(i+1))}</div><input data-pct="${i}" inputmode="decimal" value="${String(cfg.percentages[i]).replace('.',',')}" ${cfg.equalShares?'disabled':''}></div>`).join('');
+document.querySelectorAll('[data-name]').forEach(x=>x.onchange=()=>{let i=+x.dataset.name;cfg.people[i].name=x.value.trim()||'Persona '+(i+1);saveCfg();calc()});
+document.querySelectorAll('[data-salary]').forEach(x=>x.onchange=()=>{cfg.people[+x.dataset.salary].salary=parse(x.value);saveCfg();calc()});
+document.querySelectorAll('[data-pct]').forEach(x=>x.onchange=()=>{cfg.percentages[+x.dataset.pct]=Math.max(0,parse(x.value));saveCfg();calc()});
+document.querySelectorAll('[data-remove]').forEach(x=>x.onclick=()=>removePerson(+x.dataset.remove))}
+function removePerson(i){
+ if(cfg.people.length<=2){toast('Calen almenys 2 persones');return}
+ const name=cfg.people[i]?.name||('Persona '+(i+1));
+ if(!confirm('Eliminar '+name+'?'))return;
+ cfg.people.splice(i,1);
+ cfg.percentages.splice(i,1);
+ let total=cfg.percentages.reduce((a,b)=>a+Math.max(0,Number(b)||0),0);
+ cfg.percentages=cfg.people.map((_,j)=>total?Math.max(0,Number(cfg.percentages[j])||0)/total*100:100/cfg.people.length);
+ saveCfg();calc();toast('Persona eliminada ✓');
+}
+
+$('amount').addEventListener('input',calc);
+document.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{$('amount').value=String(parse($('amount').value)+Number(b.dataset.add)).replace('.',',');calc()});
+$('clearInput').onclick=$('reset').onclick=()=>{$('amount').value='';calc();$('amount').focus()};
+$('copy').onclick=async()=>{try{await navigator.clipboard.writeText(resultText(parse($('amount').value)));toast('Copiat ✓')}catch{toast('No s’ha pogut copiar')}};
+$('share').onclick=async()=>{let text=resultText(parse($('amount').value));if(navigator.share){try{await navigator.share({title:'Repartidor',text})}catch{}}else{$('copy').click()}};
+$('save').onclick=()=>{let n=parse($('amount').value);if(!n){toast('Introdueix un import');return}pending=n;$('labelInput').value='';$('labelModal').classList.add('show');setTimeout(()=>$('labelInput').focus(),100)};
+$('closeModal').onclick=()=>$('labelModal').classList.remove('show');
+$('saveLabeled').onclick=()=>{let h=getH();h.unshift({id:Date.now(),amount:pending,label:$('labelInput').value.trim(),date:new Date().toISOString(),people:cfg.people.map(p=>({...p})),mode:cfg.mode,percentages:getPercentages()});setH(h);$('labelModal').classList.remove('show');render();renderStats();toast('Guardat ✓')};
+function dateLabel(iso){return new Date(iso).toLocaleString('ca-ES',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}
+function inFilter(x){let d=new Date(x.date),now=new Date();if(activeFilter==='today')return d.toDateString()===now.toDateString();if(activeFilter==='week')return now-d<=7*86400000;return true}
+function render(){let q=$('search').value.toLowerCase(),h=getH().filter(inFilter).filter(x=>(String(x.amount)+' '+(x.label||'')).toLowerCase().includes(q)),el=$('history');if(!h.length){el.innerHTML='<div class="empty">No hi ha registres.</div>';return}el.innerHTML=h.map(x=>`<div class="item" data-id="${x.id}"><div><b>${fmt(x.amount)}</b><small>${dateLabel(x.date)}</small>${x.label?`<div class="tag">${esc(x.label)}</div>`:''}</div><div class="right"><b>${x.people?.length||2}</b><small>persones</small></div></div>`).join('');el.querySelectorAll('.item').forEach(e=>e.onclick=()=>{let x=getH().find(y=>String(y.id)===e.dataset.id);if(x){$('amount').value=String(x.amount).replace('.',',');if(Array.isArray(x.people)&&x.people.length>=2){cfg.people=x.people.slice(0,10);cfg.mode=x.mode||'percent';cfg.percentages=x.percentages||cfg.people.map(()=>100/cfg.people.length);saveCfg()}calc();show('calcPage')}})}
+$('search').oninput=render;
+document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{activeFilter=c.dataset.filter;document.querySelectorAll('.chip').forEach(x=>x.classList.toggle('active',x===c));render()});
+$('clearHistory').onclick=()=>{if(!cfg.confirmDelete||confirm('Esborrar tot l’historial?')){localStorage.removeItem('history');render();renderStats();toast('Historial esborrat')}};
+function renderStats(){let h=getH(),total=h.reduce((s,x)=>s+x.amount,0),ps=getPercentages(),a=total*ps[0]/100;$('sCount').textContent=h.length;$('sTotal').textContent=fmt(total);$('sA').textContent=fmt(a);$('sB').textContent=fmt(total-a)}
+$('export').onclick=()=>{let h=getH(),rows=[['Data','Import','Etiqueta','Mode','Persones','Repartiment'],...h.map(x=>[dateLabel(x.date),x.amount,x.label||'',x.mode||'',(x.people||[]).map(p=>`${p.name}:${p.salary}`).join(' | '),(x.percentages||[]).map(p=>p.toFixed(1)+'%').join(' | ')])];let csv=rows.map(r=>r.map(v=>`"${String(v).replaceAll('"','""')}"`).join(';')).join('\n');download('repartidor.csv','text/csv;charset=utf-8',csv);toast('CSV creat ✓')};
+$('shareStats').onclick=async()=>{let h=getH(),total=h.reduce((s,x)=>s+x.amount,0),t=`Repartidor\nImports: ${h.length}\nTotal: ${fmt(total)}`;if(navigator.share){try{await navigator.share({title:'Resum Repartidor',text:t})}catch{}}else{try{await navigator.clipboard.writeText(t);toast('Copiat ✓')}catch{}}};
+function download(name,type,data){let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)}
+
+
+function updateMethodUI(){
+ document.querySelectorAll('.method button').forEach(b=>b.classList.remove('active'));
+ if(cfg.equalShares){$('methodEqual').classList.add('active')}
+ else if(cfg.mode==='salary'){$('methodSalary').classList.add('active')}
+ else {$('methodPercent').classList.add('active')}
+}
+$('methodSalary').onclick=()=>{cfg.equalShares=false;cfg.mode='salary';saveCfg();calc();toast('Repartiment segons salaris ✓')};
+$('methodPercent').onclick=()=>{cfg.equalShares=false;cfg.mode='percent';saveCfg();calc();toast('Percentatges directes ✓')};
+$('methodEqual').onclick=()=>{cfg.equalShares=true;saveCfg();calc();toast('Parts iguals activades ✓')};
+
+function $addPersonMainStyle(){
+ const b=$('addPersonMain');
+ if(!b)return;
+ b.style.opacity=cfg.people.length>=10?'.45':'1';
+ b.style.cursor=cfg.people.length>=10?'default':'pointer';
+}
+let editingPerson=null;
+function openNameEditor(i){
+ editingPerson=i;
+ $('nameInput').value=cfg.people[i].name||'Persona '+(i+1);
+ $('nameModal').classList.add('show');
+ setTimeout(()=>{$('nameInput').focus();$('nameInput').select()},80);
+}
+$('closeName').onclick=()=>$('nameModal').classList.remove('show');
+$('saveName').onclick=()=>{
+ if(editingPerson===null)return;
+ let name=$('nameInput').value.trim()||'Persona '+(editingPerson+1);
+ cfg.people[editingPerson].name=name;
+ saveCfg();$('nameModal').classList.remove('show');calc();toast('Nom actualitzat ✓');
+};
+$('nameInput').addEventListener('keydown',e=>{if(e.key==='Enter')$('saveName').click();if(e.key==='Escape')$('closeName').click()});
+$('addPersonMain').onclick=()=>{
+ if(cfg.people.length>=10){toast('Màxim 10 persones');return}
+ let n=cfg.people.length+1;
+ cfg.people.push({name:'Persona '+n,salary:0});
+ cfg.percentages=cfg.people.map(()=>100/cfg.people.length);
+ saveCfg();calc();toast('Persona '+n+' afegida ✓');
+};
+$('mode').onchange=e=>{cfg.mode=e.target.value;saveCfg();calc();toast(cfg.mode==='salary'?'Mode salaris activat ✓':'Mode percentatges activat ✓')};
+$('equalShares').onchange=e=>{cfg.equalShares=e.target.checked;saveCfg();calc();toast(cfg.equalShares?'Parts iguals activades ✓':'Parts iguals desactivades')};
+$('addPerson').onclick=()=>{if(cfg.people.length>=10){toast('Màxim 10 persones');return}let n=cfg.people.length+1;cfg.people.push({name:'Persona '+n,salary:0});cfg.percentages=cfg.people.map(()=>100/cfg.people.length);saveCfg();calc();toast('Persona afegida ✓')};
+$('backup').onclick=()=>{download('repartidor-backup.json','application/json',JSON.stringify({cfg,history:getH()},null,2));toast('Còpia creada ✓')};
+$('restoreBtn').onclick=()=>$('restoreFile').click();
+$('restoreFile').onchange=e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let d=JSON.parse(r.result);if(!Array.isArray(d.history))throw 0;localStorage.setItem('history',JSON.stringify(d.history));if(d.cfg){cfg={...defaults,...d.cfg};cfg.equalShares=!!cfg.equalShares;
+cfg.people=Array.isArray(cfg.people)&&cfg.people.length>=2?cfg.people.slice(0,10):defaults.people;cfg.percentages=Array.isArray(cfg.percentages)&&cfg.percentages.length===cfg.people.length?cfg.percentages:cfg.people.map(()=>100/cfg.people.length);saveCfg()}calc();render();renderStats();toast('Dades importades ✓')}catch{toast('Fitxer no vàlid')}};r.readAsText(f)};
+
+function ticketPersonLabels(){return cfg.people.map((p,i)=>({i,label:p.name||('Persona '+(i+1)),name:p.name||('Persona '+(i+1))}))}
+function parseTicketAmount(v){return parse(v)}
+function cleanTicketName(v){return String(v).replace(/\s+/g,' ').replace(/^[\-–—•*\s]+/,'').trim()}
+function parseTicketOCR(text){
+ const lines=String(text||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+ const money=/(-?\d{1,4}(?:[.\s]\d{3})*(?:[,.]\d{2})|-?\d+[,.]\d{2})\s*€?\s*$/;
+ // The first real total is terminal: no concepts after it are parsed.
+ const totalRx=/^\s*(?:total|total\s*:|total\s+a\s+pagar|total\s+pagar|importe\s+total|grand\s+total|amount\s+due)\b/i;
+ const administrativeRx=/\b(subtotal|sub\s*total|iva|i\.v\.a|tax|vat|propina|tip|cambio|cash|efectivo|tarjeta|card|pagado|descuento|service|servicio)\b/i;
+ const rows=[]; let detected=null; let totalFound=false;
+
+ for(const raw of lines){
+   if(totalFound) break;
+
+   const m=raw.match(money);
+   if(!m) continue;
+
+   const amount=parseTicketAmount(m[1]);
+   if(!Number.isFinite(amount)) continue;
+
+   // TOTAL is stored, never added as a row, and immediately ends parsing.
+   if(totalRx.test(raw)){
+      if(!/subtotal/i.test(raw)) detected=amount;
+      totalFound=true;
+      break;
+   }
+
+   // Administrative lines before TOTAL are not products.
+   if(administrativeRx.test(raw)) continue;
+
+   const name=cleanTicketName(raw.slice(0,m.index));
+   if(!name || name.length<2) continue;
+
+   // Ignore pure quantities / obvious page counters.
+   if(/^\d+(?:[.,]\d+)?\s*[xX*]?$/.test(name)) continue;
+
+   rows.push({id:Date.now()+rows.length,name,amount,people:[]});
+ }
+
+ // Remove OCR duplicates while preserving original order.
+ const seen=new Set(), unique=[];
+ rows.forEach(r=>{
+   const key=r.name.toLowerCase().replace(/\s+/g,' ')+'|'+Number(r.amount).toFixed(2);
+   if(!seen.has(key)){seen.add(key);unique.push(r);}
+ });
+ return {rows:unique.slice(0,80),detectedTotal:detected};
+}
+function renderTicketRows(){
+ const el=$('ticketRows'),labels=ticketPersonLabels();
+ if(!ticketRows.length){el.innerHTML='<div class="ticketEmpty">No s’han detectat línies amb imports. Pots afegir-les manualment.</div>';}
+ else el.innerHTML=ticketRows.map((r,i)=>`<div class="ticketRow" data-ticket-row="${i}"><div class="ticketMain"><input class="ticketNameInput" data-ticket-name="${i}" value="${esc(r.name)}"><input class="ticketAmount" data-ticket-amount="${i}" inputmode="decimal" value="${String(r.amount).replace('.',',')}"></div><div class="assignLabel">Qui ho paga?</div><div class="assignChips">${labels.map(x=>`<button class="assignChip ${r.people.includes(x.i)?'active':''}" data-ticket-person="${i}:${x.i}" title="${esc(x.name)}">${x.label}</button>`).join('')}<button class="assignChip ${r.people.length===labels.length?'active':''}" data-ticket-all="${i}">Tots</button></div></div>`).join('');
+ document.querySelectorAll('[data-ticket-name]').forEach(x=>x.oninput=()=>{ticketRows[+x.dataset.ticketName].name=x.value});
+ document.querySelectorAll('[data-ticket-amount]').forEach(x=>x.oninput=()=>{ticketRows[+x.dataset.ticketAmount].amount=parseTicketAmount(x.value);updateTicketTotals()});
+ document.querySelectorAll('[data-ticket-person]').forEach(x=>x.onclick=()=>{let [ri,pi]=x.dataset.ticketPerson.split(':').map(Number);let a=ticketRows[ri].people;if(a.includes(pi))ticketRows[ri].people=a.filter(v=>v!==pi);else a.push(pi);renderTicketRows();updateTicketTotals()});
+ document.querySelectorAll('[data-ticket-all]').forEach(x=>x.onclick=()=>{let i=+x.dataset.ticketAll;ticketRows[i].people=ticketRows[i].people.length===labels.length?[]:labels.map(v=>v.i);renderTicketRows();updateTicketTotals()});
+ updateTicketTotals();
+}
+function updateTicketTotals(){
+ const sum=ticketRows.reduce((s,r)=>s+(Number(r.amount)||0),0);$('ticketItemsTotal').textContent=fmt(sum);$('ticketDetectedTotal').textContent=ticketDetectedTotal==null?'—':fmt(ticketDetectedTotal);const diff=ticketDetectedTotal==null?0:ticketDetectedTotal-sum;const d=$('ticketDiff');if(ticketDetectedTotal==null){d.textContent='El total del tiquet no s’ha pogut detectar; es farà servir la suma dels conceptes.';d.classList.remove('warn')}else if(Math.abs(diff)<0.01){d.textContent='✓ Les línies coincideixen amb el total detectat';d.classList.remove('warn')}else{d.textContent=`Diferència: ${fmt(diff)} · es distribuirà proporcionalment en aplicar`;d.classList.add('warn')}}
+function setTicketStatus(t,kind=''){const x=$('scanStatus');x.textContent=t;x.className='scanStatus '+kind}
+async function runTicketOCR(file){
+ if(!window.Tesseract){setTicketStatus('No s’ha pogut carregar el lector OCR. Pots introduir les línies manualment.','error');return}
+ setTicketStatus('Llegint el tiquet…');
+ try{
+   const result=await Tesseract.recognize(file,'eng',{logger:m=>{if(m.status==='recognizing text'&&typeof m.progress==='number')setTicketStatus(`Llegint el tiquet… ${Math.round(m.progress*100)}%`)}});
+   const parsed=parseTicketOCR(result.data.text);ticketRows=parsed.rows;ticketDetectedTotal=parsed.detectedTotal;
+   $('ticketEditorCard').style.display='block';$('ticketEmptyCard').style.display='none';renderTicketRows();
+   setTicketStatus(ticketRows.length?`${ticketRows.length} línies detectades. Revisa-les abans d’aplicar.`:'No s’han detectat línies amb imports. Afegeix-les manualment.','ok');
+ }catch(e){console.error(e);setTicketStatus('No s’ha pogut llegir la imatge. Pots introduir les línies manualment.','error');$('ticketEditorCard').style.display='block';$('ticketEmptyCard').style.display='none';renderTicketRows()}
+}
+function resetTicket(){ticketRows=[];ticketDetectedTotal=null;$('ticketEditorCard').style.display='none';$('ticketEmptyCard').style.display='block';$('ticketPreview').classList.remove('show');$('ticketPreview').removeAttribute('src');if(ticketObjectUrl)URL.revokeObjectURL(ticketObjectUrl);ticketObjectUrl=null;setTicketStatus('Encara no has seleccionat cap tiquet.')}
+$('scanTicket').onclick=()=>show('ticketPage');
+$('ticketBack').onclick=()=>show('calcPage');
+$('ticketChoose').onclick=()=>$('ticketFile').click();
+$('ticketFile').onchange=()=>{const f=$('ticketFile').files?.[0];if(!f)return;if(ticketObjectUrl)URL.revokeObjectURL(ticketObjectUrl);ticketObjectUrl=URL.createObjectURL(f);$('ticketPreview').src=ticketObjectUrl;$('ticketPreview').classList.add('show');$('ticketEditorCard').style.display='block';$('ticketEmptyCard').style.display='none';ticketRows=[];ticketDetectedTotal=null;renderTicketRows();runTicketOCR(f)};
+$('ticketAddRow').onclick=()=>{ticketRows.push({id:Date.now()+ticketRows.length,name:'Nou concepte',amount:0,people:[]});renderTicketRows();setTicketStatus('Línia afegida. Assigna-la a una persona.')};
+$('ticketReset').onclick=resetTicket;
+$('ticketApply').onclick=()=>{
+ const n=cfg.people.length; if(!ticketRows.length){toast('No hi ha conceptes');return}
+ const unassigned=ticketRows.some(r=>!r.people.length);if(unassigned){toast('Assigna tots els conceptes');return}
+ const base=ticketRows.reduce((s,r)=>s+(Number(r.amount)||0),0);const total=ticketDetectedTotal!=null?ticketDetectedTotal:base;
+ if(!total){toast('El total és 0,00 €');return}
+ const shares=Array(n).fill(0);
+ ticketRows.forEach(r=>{const part=(Number(r.amount)||0)/Math.max(1,r.people.length);r.people.forEach(i=>shares[i]+=part)});
+ const shareBase=shares.reduce((a,b)=>a+b,0);const factor=shareBase?total/shareBase:1;const finalShares=shares.map(x=>x*factor);cfg.mode='percent';cfg.equalShares=false;cfg.percentages=finalShares.map(x=>x/total*100);saveCfg();$('amount').value=String(total).replace('.',',');calc();show('calcPage');toast('Tiquet aplicat ✓');
+};
+
+function show(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));$(id).classList.add('active');document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===id));window.scrollTo(0,0)}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>show(b.dataset.page));$('settingsTop').onclick=()=>show('settingsPage');
+calc();render();renderStats();
+document.addEventListener('click',e=>{
+ let b=e.target.closest('[data-edit-name]');
+ if(b)openNameEditor(Number(b.dataset.editName));
+ let r=e.target.closest('[data-remove-card]');
+ if(r)removePerson(Number(r.dataset.removeCard));
+});
+
+
+if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js?v=36'));
+</script>
+<script>
+window.receiptDisplayName=function(i){
+  return (window.cfg && cfg.people && cfg.people[i] && cfg.people[i].name) ? cfg.people[i].name : ('Persona '+(i+1));
+};
+window.receiptPeopleLabel=function(ids){
+  if(!ids || !ids.length) return 'Sense assignar';
+  return ids.map(i=>window.receiptDisplayName(i)).join(' + ');
+};
+</script>
+
+<script>
+(function(){
+  function attach(){
+    document.querySelectorAll('input[type="file"]').forEach(input=>{
+      if(input.dataset.v37scanner==="1")return;
+      const accept=(input.getAttribute("accept")||"").toLowerCase();
+      if(accept && !accept.includes("image"))return;
+      input.dataset.v37scanner="1";
+      input.addEventListener("change",async function(){
+        const file=this.files&&this.files[0]; if(!file)return;
+        try{
+          const result=await window.v37ScanTicketAndFeed(file);
+          window.dispatchEvent(new CustomEvent("repartidor-receipt-ready",{detail:result}));
+        }catch(e){}
+      },true);
+    });
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",attach);else attach();
+  new MutationObserver(attach).observe(document.documentElement,{childList:true,subtree:true});
+})();
+</script>
+
+<script>
+window.addEventListener("repartidor-receipt-ready",function(ev){
+  const r=ev.detail;
+  // Do not alter people/assignment data. Only expose parsed receipt items.
+  window.ticketScannerReceipt=r;
+  if(typeof window.loadReceiptItems==="function") window.loadReceiptItems(r.items,r);
+  else if(typeof window.setReceiptItems==="function") window.setReceiptItems(r.items,r);
+});
+</script>
+<div id="v37-version" style="position:fixed;bottom:4px;right:8px;font-size:10px;opacity:.45;z-index:9999">V37.1</div></body></html>
+<style>
+/* v34: Settings is accessed only from the compact bottom navigation. */
+header [data-page="settings"], .header [data-page="settings"], .topbar [data-page="settings"],
+.topActions [data-page="settings"], .topSettings { display:none !important; }
+/* Cleaner iOS-like settings icon: three sliders, not a literal gear. */
+.gearIcon{width:22px;height:22px}
+</style>
+
+/* Repartidor V37 */
