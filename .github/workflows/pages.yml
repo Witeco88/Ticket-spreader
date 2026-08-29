@@ -1,1 +1,59 @@
-
+name: Deploy Repartidor with Ticket Scanner 5.7.1
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - name: Prepare site
+        run: |
+          set -euo pipefail
+          rm -rf public
+          mkdir -p public/ocr/core public/ocr/lang public/src
+          cp index.html manifest.json sw.js public/
+          cp icon-180.png icon-512.png public/
+          cp src/ticket-scanner.js public/src/
+      - name: Download local OCR assets
+        run: |
+          set -euo pipefail
+          curl --fail --retry 3 -L https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js -o public/ocr/tesseract.min.js
+          curl --fail --retry 3 -L https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/worker.min.js -o public/ocr/worker.min.js
+          for f in tesseract-core.wasm.js tesseract-core-simd.wasm.js tesseract-core-lstm.wasm.js tesseract-core-simd-lstm.wasm.js; do
+            curl --fail --retry 3 -L "https://cdn.jsdelivr.net/npm/tesseract.js-core@5.1.1/$f" -o "public/ocr/core/$f"
+          done
+          for l in cat spa eng nld fra deu ita por; do
+            curl --fail --retry 3 -L "https://tessdata.projectnaptha.com/4.0.0/$l.traineddata.gz" -o "public/ocr/lang/$l.traineddata.gz"
+          done
+      - name: Verify published assets
+        run: |
+          set -euo pipefail
+          test -s public/index.html
+          test -s public/src/ticket-scanner.js
+          test -s public/ocr/tesseract.min.js
+          test -s public/ocr/worker.min.js
+          for f in tesseract-core.wasm.js tesseract-core-simd.wasm.js tesseract-core-lstm.wasm.js tesseract-core-simd-lstm.wasm.js; do test -s "public/ocr/core/$f"; done
+          for l in cat spa eng nld fra deu ita por; do test -s "public/ocr/lang/$l.traineddata.gz"; done
+          find public -type f | sort
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
